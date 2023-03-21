@@ -304,6 +304,8 @@ class RawEditorState extends EditorState
 
   TextDirection get _textDirection => Directionality.of(context);
 
+  var size = Size.zero;
+
   /// Returns the [ContextMenuButtonItem]s representing the buttons in this
   /// platform's default selection menu for [RawEditor].
   ///
@@ -414,6 +416,17 @@ class RawEditorState extends EditorState
     );
 
     if (widget.scrollable) {
+      if (widget.expands) {
+        WidgetsFlutterBinding.ensureInitialized()
+            .addPostFrameCallback((timeStamp) {
+          final sz = context.findAncestorRenderObjectOfType<RenderBox>()?.size;
+          if (sz == size) return;
+          setState(() {
+            size = sz!;
+          });
+        });
+      }
+
       /// Since [SingleChildScrollView] does not implement
       /// `computeDistanceToActualBaseline` it prevents the editor from
       /// providing its baseline metrics. To address this issue we wrap
@@ -430,30 +443,34 @@ class RawEditorState extends EditorState
           physics: widget.scrollPhysics,
           viewportBuilder: (_, offset) => CompositedTransformTarget(
             link: _toolbarLayerLink,
-            child: Stack(
-              children: [
-                _Editor(
-                  key: _editorKey,
-                  offset: offset,
-                  document: _doc,
-                  selection: controller.selection,
-                  hasFocus: _hasFocus,
-                  scrollable: widget.scrollable,
-                  textDirection: _textDirection,
-                  startHandleLayerLink: _startHandleLayerLink,
-                  endHandleLayerLink: _endHandleLayerLink,
-                  onSelectionChanged: _handleSelectionChanged,
-                  onSelectionCompleted: _handleSelectionCompleted,
-                  scrollBottomInset: widget.scrollBottomInset,
-                  padding: widget.padding,
-                  maxContentWidth: widget.maxContentWidth,
-                  cursorController: _cursorCont,
-                  floatingCursorDisabled: widget.floatingCursorDisabled,
-                  children: _buildChildren(_doc, context),
-                ),
-                if (widget.overlayBuilder != null)
-                  widget.overlayBuilder!(context),
-              ],
+            child: ConstrainedBox(
+              constraints:
+                  BoxConstraints(minWidth: size.width, minHeight: size.height),
+              child: Stack(
+                children: [
+                  _Editor(
+                    key: _editorKey,
+                    offset: offset,
+                    document: _doc,
+                    selection: controller.selection,
+                    hasFocus: _hasFocus,
+                    scrollable: widget.scrollable,
+                    textDirection: _textDirection,
+                    startHandleLayerLink: _startHandleLayerLink,
+                    endHandleLayerLink: _endHandleLayerLink,
+                    onSelectionChanged: _handleSelectionChanged,
+                    onSelectionCompleted: _handleSelectionCompleted,
+                    scrollBottomInset: widget.scrollBottomInset,
+                    padding: widget.padding,
+                    maxContentWidth: widget.maxContentWidth,
+                    cursorController: _cursorCont,
+                    floatingCursorDisabled: widget.floatingCursorDisabled,
+                    children: _buildChildren(_doc, context),
+                  ),
+                  if (widget.overlayBuilder != null)
+                    widget.overlayBuilder!(context),
+                ],
+              ),
             ),
           ),
         ),
