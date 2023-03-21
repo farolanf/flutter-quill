@@ -153,6 +153,7 @@ class QuillEditor extends StatefulWidget {
       required this.autoFocus,
       required this.readOnly,
       required this.expands,
+      this.overlayBuilder,
       this.showCursor,
       this.paintCursorAboveText,
       this.placeholder,
@@ -312,6 +313,8 @@ class QuillEditor extends StatefulWidget {
   ///
   /// Defaults to `false`.
   final bool expands;
+
+  final Widget Function(BuildContext context)? overlayBuilder;
 
   /// Configures how the platform keyboard will select an uppercase or
   /// lowercase keyboard.
@@ -486,6 +489,7 @@ class QuillEditorState extends State<QuillEditor>
       maxContentWidth: widget.maxContentWidth,
       customStyles: widget.customStyles,
       expands: widget.expands,
+      overlayBuilder: widget.overlayBuilder,
       autoFocus: widget.autoFocus,
       selectionColor: selectionColor,
       selectionCtrls: widget.textSelectionControls ?? textSelectionControls,

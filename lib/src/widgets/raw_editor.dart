@@ -52,6 +52,7 @@ class RawEditor extends StatefulWidget {
       required this.selectionCtrls,
       required this.embedBuilder,
       Key? key,
+      this.overlayBuilder,
       this.scrollable = true,
       this.padding = EdgeInsets.zero,
       this.readOnly = false,
@@ -94,6 +95,8 @@ class RawEditor extends StatefulWidget {
 
   /// Additional space around the editor contents.
   final EdgeInsetsGeometry padding;
+
+  final Widget Function(BuildContext context)? overlayBuilder;
 
   /// Whether the text can be changed.
   ///
@@ -384,23 +387,28 @@ class RawEditorState extends EditorState
     Widget child = CompositedTransformTarget(
       link: _toolbarLayerLink,
       child: Semantics(
-        child: _Editor(
-          key: _editorKey,
-          document: _doc,
-          selection: controller.selection,
-          hasFocus: _hasFocus,
-          scrollable: widget.scrollable,
-          cursorController: _cursorCont,
-          textDirection: _textDirection,
-          startHandleLayerLink: _startHandleLayerLink,
-          endHandleLayerLink: _endHandleLayerLink,
-          onSelectionChanged: _handleSelectionChanged,
-          onSelectionCompleted: _handleSelectionCompleted,
-          scrollBottomInset: widget.scrollBottomInset,
-          padding: widget.padding,
-          maxContentWidth: widget.maxContentWidth,
-          floatingCursorDisabled: widget.floatingCursorDisabled,
-          children: _buildChildren(_doc, context),
+        child: Stack(
+          children: [
+            _Editor(
+              key: _editorKey,
+              document: _doc,
+              selection: controller.selection,
+              hasFocus: _hasFocus,
+              scrollable: widget.scrollable,
+              cursorController: _cursorCont,
+              textDirection: _textDirection,
+              startHandleLayerLink: _startHandleLayerLink,
+              endHandleLayerLink: _endHandleLayerLink,
+              onSelectionChanged: _handleSelectionChanged,
+              onSelectionCompleted: _handleSelectionCompleted,
+              scrollBottomInset: widget.scrollBottomInset,
+              padding: widget.padding,
+              maxContentWidth: widget.maxContentWidth,
+              floatingCursorDisabled: widget.floatingCursorDisabled,
+              children: _buildChildren(_doc, context),
+            ),
+            if (widget.overlayBuilder != null) widget.overlayBuilder!(context),
+          ],
         ),
       ),
     );
@@ -422,24 +430,30 @@ class RawEditorState extends EditorState
           physics: widget.scrollPhysics,
           viewportBuilder: (_, offset) => CompositedTransformTarget(
             link: _toolbarLayerLink,
-            child: _Editor(
-              key: _editorKey,
-              offset: offset,
-              document: _doc,
-              selection: controller.selection,
-              hasFocus: _hasFocus,
-              scrollable: widget.scrollable,
-              textDirection: _textDirection,
-              startHandleLayerLink: _startHandleLayerLink,
-              endHandleLayerLink: _endHandleLayerLink,
-              onSelectionChanged: _handleSelectionChanged,
-              onSelectionCompleted: _handleSelectionCompleted,
-              scrollBottomInset: widget.scrollBottomInset,
-              padding: widget.padding,
-              maxContentWidth: widget.maxContentWidth,
-              cursorController: _cursorCont,
-              floatingCursorDisabled: widget.floatingCursorDisabled,
-              children: _buildChildren(_doc, context),
+            child: Stack(
+              children: [
+                _Editor(
+                  key: _editorKey,
+                  offset: offset,
+                  document: _doc,
+                  selection: controller.selection,
+                  hasFocus: _hasFocus,
+                  scrollable: widget.scrollable,
+                  textDirection: _textDirection,
+                  startHandleLayerLink: _startHandleLayerLink,
+                  endHandleLayerLink: _endHandleLayerLink,
+                  onSelectionChanged: _handleSelectionChanged,
+                  onSelectionCompleted: _handleSelectionCompleted,
+                  scrollBottomInset: widget.scrollBottomInset,
+                  padding: widget.padding,
+                  maxContentWidth: widget.maxContentWidth,
+                  cursorController: _cursorCont,
+                  floatingCursorDisabled: widget.floatingCursorDisabled,
+                  children: _buildChildren(_doc, context),
+                ),
+                if (widget.overlayBuilder != null)
+                  widget.overlayBuilder!(context),
+              ],
             ),
           ),
         ),
